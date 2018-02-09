@@ -139,3 +139,162 @@ qqline(abalone[abalone[,1] == "M", 12])
 
 ```
 
+
+Above is showing the density histograms, boxplots, and Q-Q plots by sex. We can look the histograms with Q-Q plots to investigate whether the density distributions are normally distributed.  On the right corners of the three Q-Q plots, we can see the dots above the black lines, which indicating that female, infant, and male DENSITY distributions right skinny tales. However, most of the dots fall on the black lines, which indicating female, infant and male density can treat normally distributed. The histograms also showing long right tails, which confirm we find from Q-Q plots.
+
+
+On the second- boxplots, the circle dots showing on the boxplots indicating the outliers. All the sexes have extremely high densities. One female abalone has extremely low density as a circle dot at the bottom of the red boxplot. By comparing the maximum and minimum values from boxplots, we can see infant abalone density fall in a smaller range and interquartile range (IQR) comparing to female and male abalones. The interquartile range represented by the dots in the boxes, which takes up 50% of all the observations. However, when we refer to the density histogram x-axes, the infant has the biggest range as the right tail reaches to 45, comparing 35 for both female and male. That’s because the boxplot taking outliers into consideration.  
+
+```{r}
+
+library(moments)
+options(digits=4)
+Skew.Stats<-function(x){
+    c(
+      Skewness = skewness(as.numeric(x)),
+      kurtosis = kurtosis(as.numeric(x))
+        )}
+      
+library(plyr)
+SEX.Skewness<- tapply(abalone$DENSITY, abalone$SEX, FUN=Skew.Stats)
+      
+      
+      
+options(digits=4)
+Dis.Stats<-function(x){
+        c(
+          Min=min(as.numeric(x)),
+          Q = quantile (as.numeric(x), 0.25),
+          Median= median(as.numeric(x)),
+          Q = quantile (as.numeric(x), 0.75),
+          Max=max(as.numeric(x)),
+          IQR = (quantile (as.numeric(x), 0.75)- quantile (as.numeric(x), 0.25)),
+          Range = (max(as.numeric(x))- min(as.numeric(x)))
+        )}
+
+# library(plyr)
+SEX.Density<- tapply(abalone$DENSITY, abalone$SEX, FUN=Dis.Stats)
+SEX.Density
+
+```
+
+Above shows the IQR and Range with outliers included. We can see a higher IQR and Range for the DENSITY of infant abalones.
+
+
+For far, it seems like that for the surprising high density (DENSITY >35) abalones, they are very likely are infants. However, the majority of the abalones from different sexes fall from the DENSITY 22 to 26. We cannot base on density to group abalone sex.
+
+```{r}
+# VOLUME boxplots differentiated by CLASS
+ggplot(abalone, aes(x=CLASS, y=VOLUME)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  geom_rug(side="l", color="black") +
+  labs(title= NULL, x="CLASS", y="VOLUME") +
+  theme( 
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold"))
+
+```
+
+
+From WHOLE differenced by SEX boxplots, we can know that infant abalones have Signiant lower whole weight comparing to female and male abalones’.  
+
+The WHOLE difference found among the sexes. Then we are trying to look whole with SEX and CLASS together
+
+
+```{r}
+
+# WHOLE boxplots differentiated by CLASS
+ggplot(abalone, aes(x=CLASS, y=WHOLE)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  geom_rug(side="l", color="black") +
+  labs(title= NULL, x="CLASS", y="VOLUME") +
+  theme( 
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold"))
+
+```
+
+DENSITY differenced by SEX, we can know there are not much density difference among three sexes.
+
+```{r}
+# VOLUME boxplots differentiated by CLASS
+ggplot(abalone, aes(x=SEX, y=VOLUME)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  geom_rug(side="l", color="black") +
+  labs(title= NULL, x="CLASS", y="VOLUME") +
+  theme( 
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold"))
+
+```
+
+```{r}
+# WHOLE boxplots differentiated by CLASS
+ggplot(abalone, aes(x=SEX, y=WHOLE)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  geom_rug(side="l", color="black") +
+  labs(title= NULL, x="CLASS", y="VOLUME") +
+  theme( 
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold"))
+
+```
+
+
+```{r}
+#     Use aggregate() to compute mean values of WHOLE for each combination of SEX and CLASS.
+#     Use the resulting object with ggplot to generate a plot of these mean values versus CLASS    
+      
+# Showing Mean WHOLE versus CLASS for Three Sexes
+WHOLE.out <- aggregate(WHOLE~SEX+CLASS, data=abalone, mean) 
+
+ggplot(data= WHOLE.out ,aes(x=CLASS, y=WHOLE, group=SEX, colour = SEX))+
+  geom_line()+geom_point(size=4)+   
+  ggtitle("Plot showing Mean WHOLE versus CLASS for Three Sexes")+
+        theme( 
+          title = element_text(size = 16, color = "black", face = "bold"),
+          axis.text = element_text(colour = "black", size = 12),
+          axis.text.y = element_text(colour = "black",size = 12),
+          axis.title = element_text(size = 15, color = "black", face = "bold"),
+          axis.title.y = element_text(size = 15, color = "black", face = "bold")
+             )
+      
+      # Showing Mean DENSITY versus CLASS for Three Sexes
+      DENSITY.out <- aggregate(DENSITY~SEX+CLASS, data=abalone, mean) 
+      
+      
+ggplot(data= DENSITY.out ,aes(x=CLASS, y=DENSITY, group=SEX, colour = SEX))+
+  geom_line()+geom_point(size=4)+   
+  ggtitle("Plot showing Mean DENSITY versus CLASS for Three Sexes")+
+        theme( 
+          title = element_text(size = 16, color = "black", face = "bold"),
+          axis.text = element_text(colour = "black", size = 12),
+          axis.text.y = element_text(colour = "black",size = 12),
+          axis.title = element_text(size = 15, color = "black", face = "bold"),
+          axis.title.y = element_text(size = 15, color = "black", face = "bold")
+              )
+  
+```
+
+We will also take a same approach for DENSITY. Above shows mean DENSITY versus CLASS for three sexes. The infant abalones have extremely high average density at young age, and extremely low average density at old ages. However, female and male abalones have more stable average DENSITY. From A2 to A6, Male abalones have higher mean DESENTY than female abalones. Especially at A3 and after, both female and male abalones have much higher average DENSITY than infant abalones. There are good possibilities to predict old abalones by DENSITY. 
+
+
+### Conclusion
+
+In summary, it is hard to predict the abalone age by the physical measurements. However, taking SEX in to consideration, we can somehow predict age class by WHOLE and DENSITY.  It looks like we can predict young abalones by average whole weight. In addition, there are good possibilities to predict old abalones by DENSITY. When the DENSITY is extremely high or extremely low, they are very likely are infants. By measuring the whole weight of abalones, we know potentially predict infants by the low WHOLE. To be more specifically, when DENSITY is above 25, and WHOLE below 0.375, the abalone very likely are infants with class A1 or A2. When DENSITY below 23.5, and WHOLE Below 0.75, there are also good chances are infants. 
+
+When we use samples to study the populations, we have to investigate whether the samples are representative for the populations. First, we have to make sure the sample size is large enough. We can apply central limit theorem to estimate the sample size. Then, we should know how the sample is sampled. Depending on the study purpose and the characters of the population, random, systematic, stratified sampling or other sampling can be used to ensure the samples are representative.  Third, we have to consider the sample errors. The samples cannot perfectly represent the populations. In order to truthfully estimate population parameters based on the samples, we should take interval estimate into consideration. This give other ideas the researchers confidence of the estimates and results. 
+From the abalone data, the problems for observation data are potential bias. We can use many ways to describe a group. The measurements used in the study might not enough. The season, location of the coastline, and other factors can affect the abalone ages.  I think in different seasons, the physical measurement or even sex might be very different. In addition, there are different kind of abalones. We may have problems to apply what we learned in one kind to other kinds. 
+
