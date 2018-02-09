@@ -1,0 +1,141 @@
+---
+title: 'Abalone Analysis'
+---
+
+### Introduction
+
+Abalones are distributed along the coastlines overwide and it is one of variable seafood. Overfishing is one of the factors putting abalones at the risk of extinction. It is very easy to over harvest because of the slow grow rates and unpredictable reproductive success of abalones. In order to manage abalone harvesting, we need to find a way to quickly study the age composition of abalones in different regions.
+
+We can use a microscope to determine abalone’s age by counting its growth rings. However, this is a slow process. Then a group of investors was trying to predict abalone age based on its physical measurements. They made a conclusion that age cannot be predicted based solely on the physical characteristics. This purpose of this report is to study why the investigators fail to predict age based on physical measurements by using exploratory data analysis. The report will review the abalone data to see whether we can predict age based on physical characteristics provided. In the process, we will also explore potential new predictable physical measurements.  The report will focus on investigating whether we can predict abalone age by physical characters with different sexes.
+
+#### About the data
+
+Important EDA methods to display aspects of these data such as: 
+
+- 1) the center or location of distributions, 
+- 2) the variation in different variables, 
+- 3) the shape of various distributions, 
+- 4) the presence of outliers 
+- 5) differences in data characteristics between abalone classifications. 
+
+
+
+```{r}
+# Load the abalone data set
+abalone <- read.csv("mydata.csv", sep="")
+```
+
+
+```{r}
+str(abalone)
+# Convert **RINGS** to factor because the value between does not have meaning
+abalone$RINGS <- as.factor(abalone$RINGS)
+```
+
+About the abalone data (4141 observations and ten variables)
+
+- 1) SEX = M (male), F (female), I (infant) 
+- 2) LENGTH = Longest shell length in mm 
+- 3) DIAM = Diameter perpendicular to length in mm 
+- 4) HEIGHT = Height perpendicular to length and diameter in mm 
+- 5) WHOLE = Whole weight of abalone in grams 
+- 6) SHUCK = Shucked weight of meat in grams 
+- 7) VISCERA = Viscera weight in grams 
+- 8) SHELL = Shell weight after drying in grams 
+- 9) RINGS = Age (+1.5 gives the age in years)  
+- 10) CLASS = Age classification based on **RINGS**  (A1= youngest,., A6=oldest) 
+
+```{r}
+options(digits=4)
+numericSummaryStats<-function(x){
+  c(
+    Min=min(as.numeric(x)),
+    Q = quantile (as.numeric(x), 0.25),
+    Median= median(as.numeric(x)),
+    Mean= mean(as.numeric(x)),
+    Q = quantile (as.numeric(x), 0.75),
+    Max=max(as.numeric(x))
+  )}
+
+NumericSummary<- sapply(abalone[,2:8], numericSummaryStats)
+
+library("knitr","xtable")
+kable(NumericSummary,format="pandoc",caption="Numeric Variable Summary")
+
+```
+
+Above a simple summary for the variables measuring the length and weight of abalones from the 500 sample. The minimum value, first quartile, median, mean, upper quartile, and maximum value helps us understand the distribution of the variables. By comparing the mean and median, it looks like the shell weight maybe symmetrical distributed because the two values are very close. LENGTH and DIAM are negatively skewed because the median is larger the mean. 
+
+In order to have a better idea of the relationships between the numeric variables, we have the scatterplots for the variables that summarized in Figure2. There are clear linear relationships between LENGTH, DIAM, and HEIGHT. LENGTH measures the longest length of the abalone shell. DIAM is the diameter perpendicular to LENGTH. HEIGHT is perpendicular to length and diameter. The width and the height of the shell will get larger as the shell length becomes larger.  The linear relationship between WHOLE and SHUCK is also strong. It makes sense as the whole weight included the shuck weight of the abalone.  It also looks like the positive relationship between SHUCK and VISCERA, VISCERA and SHELL are strong. However, the points are spread out.  In addition, from the right upper plots and the left lower plots, initially, as the lengths (LENGTH and DIAM) get longer, the weights, no matter how it measured, they are quite stable. When the LENGTH gets more than 0.4mm, the weights of the abalones increase very fast, and the rate of increases get faster. While the abalone reach a big weight, the lengths of the shell increase very little, it more like the shell won’t get bigger. In addition, it looks like there are some outliers come from the abalones with very high shell weight after dying.
+
+```{r}
+plot(abalone[,2:8])
+```
+
+```{r}
+Sex_Class <- addmargins(table(abalone$SEX, abalone$CLASS))
+kable(Sex_Class,format="pandoc",caption="Sex by Age Class")
+```
+
+Above groups female, infant and male abalones by shell classification. Because A1 indicates the youngest abalones and A6 represent the oldest. Apparently, infants should fall into the young groups.  But there some infants also belong to older groups, even A6.  In Figure4, we can also get that most female and male abalones fall in age A3. Overall, there are more male abalones than female abalones. 
+
+As there are clear linear relationships between LENGTH, DIAM, and HEIGHT showing in above, we will create a new variable called VOLUME. VOLUME is calculated by multiplying LENGTH, DIAM and HEIGHT together. 
+
+```{r}
+
+VOLUME <- abalone$LENGTH * abalone$DIAM * abalone$HEIGHT
+abalone <- data.frame(abalone, VOLUME)
+
+library(ggplot2)
+library(gridExtra)
+
+ggplot(data=abalone, aes(x=WHOLE, y=VOLUME)) +
+  geom_point(pch=16, color="black", size=2) +
+  geom_smooth(method="lm",  se = FALSE, color="blue",  size=1.2, linetype=2) +
+  labs(title="Plot WHOLE Versus VOLUME", x="Whole weight of abalone (grams)", y="VOLUME") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+    
+  )
+
+
+```
+
+Above is the plot between the whole weight of abalone and its volume.  The blue dash represents best fit for the black dots in the graph. Most of the black dots fall on or very close to the blue line when the whole weight within 0.5 grams and its less than 0.025 〖mm〗^3.  The dots get far away from the blue line as the weights gets larger. However, the VOLUMN has a positive linear relationship with the whole weight overall. Because VOLUMN is the product of LENGTH, DIAM, and HEIGHT. Those three values showing positive relationship with whole weight. However, the relationship looks weak when the abalone reach 0.5 grams and higher. 
+
+```{r}
+DENSITY <- abalone$WHOLE/abalone$VOLUME
+abalone <- data.frame(abalone, DENSITY) 
+#     Using DENSITY, present a matrix showing histograms, boxplots and Q-Q plots differentiated by sex.
+#     The first row would show the histograms, 
+#     The second row would show the boxplots  
+#     The third row would show the Q-Q plots.      
+par(mfrow = c(3,3))
+
+hist((abalone[abalone[,1] == "F", 12]),main="Female Histogram",xlab = NULL, col = "red") 
+hist((abalone[abalone[,1] == "I", 12]),main="Infant Histogram",xlab = NULL,col = "blue")
+hist((abalone[abalone[,1] == "M", 12]),main="Male Histogram",xlab = NULL, col = "green")
+
+boxplot((abalone[abalone[,1] == "F", 12]), main="Female Boxplot", ylab="DENSITY",col = "red")
+boxplot((abalone[abalone[,1] == "I", 12]), main="Infant Boxplot", ylab="DENSITY",col = "blue")
+boxplot((abalone[abalone[,1] == "M", 12]), main="Male Boxplot", ylab="DENSITY",col = "green")
+
+qqnorm(abalone[abalone[,1] == "F", 12], ylab = "Sample Quantiles for Female",
+       main = "Q-Q Plot for Female",
+       col =  "red",cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == "F", 12])
+qqnorm(abalone[abalone[,1] == "I", 12], ylab = "Sample Quantiles for Infant",
+       main = "Q-Q Plot for Infant",
+       col = "blue",cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == "I", 12])
+qqnorm(abalone[abalone[,1] == "M", 12], ylab = "Sample Quantiles for Male",
+       main = "Q-Q Plot for Male",
+       col = "green", cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == "M", 12]) 
+
+```
+
