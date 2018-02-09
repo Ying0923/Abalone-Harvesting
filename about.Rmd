@@ -1,5 +1,3 @@
 ---
-title: "mywebsite"
+title: "about"
 ---
-
-# About my website

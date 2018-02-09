@@ -1,8 +1,11 @@
-name: "abalone"
+name: "my-website"
 navbar:
-  title: "abalone"
-left:
-  - text: "Home"
-href: index.html
-- text: "About"
-href: about.html
+  title: "My Website"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+output:
+  theme: cosmo
+  highlight: textmate

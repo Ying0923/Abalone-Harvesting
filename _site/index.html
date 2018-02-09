@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Abalone Analysis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">My Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Abalone Analysis</h1>
+
+</div>
+
+
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>Abalones are distributed along the coastlines overwide and it is one of variable seafood. Overfishing is one of the factors putting abalones at the risk of extinction. It is very easy to over harvest because of the slow grow rates and unpredictable reproductive success of abalones. In order to manage abalone harvesting, we need to find a way to quickly study the age composition of abalones in different regions.</p>
+<p>We can use a microscope to determine abalone’s age by counting its growth rings. However, this is a slow process. Then a group of investors was trying to predict abalone age based on its physical measurements. They made a conclusion that age cannot be predicted based solely on the physical characteristics. This purpose of this report is to study why the investigators fail to predict age based on physical measurements by using exploratory data analysis. The report will review the abalone data to see whether we can predict age based on physical characteristics provided. In the process, we will also explore potential new predictable physical measurements. The report will focus on investigating whether we can predict abalone age by physical characters with different sexes.</p>
+<div id="about-the-data" class="section level4">
+<h4>About the data</h4>
+<p>Important EDA methods to display aspects of these data such as:</p>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>the center or location of distributions,</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>the variation in different variables,</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>the shape of various distributions,</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>the presence of outliers</li>
+</ol></li>
+<li><ol start="5" style="list-style-type: decimal">
+<li>differences in data characteristics between abalone classifications.</li>
+</ol></li>
+</ul>
+<pre class="r"><code># Load the abalone data set
+abalone &lt;- read.csv(&quot;mydata.csv&quot;, sep=&quot;&quot;)</code></pre>
+<pre class="r"><code>str(abalone)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    500 obs. of  12 variables:
+##  $ SEX    : Factor w/ 3 levels &quot;F&quot;,&quot;I&quot;,&quot;M&quot;: 1 3 3 1 1 1 2 1 3 2 ...
+##  $ LENGTH : num  0.705 0.575 0.645 0.625 0.47 0.585 0.275 0.485 0.46 0.575 ...
+##  $ DIAM   : num  0.55 0.455 0.51 0.485 0.35 0.46 0.22 0.365 0.375 0.45 ...
+##  $ HEIGHT : num  0.17 0.185 0.195 0.135 0.115 0.17 0.08 0.15 0.13 0.135 ...
+##  $ WHOLE  : num  1.219 1.156 1.226 1.302 0.487 ...
+##  $ SHUCK  : num  0.639 0.552 0.589 0.61 0.196 ...
+##  $ VISCERA: num  0.236 0.243 0.222 0.268 0.127 ...
+##  $ SHELL  : num  0.301 0.295 0.374 0.36 0.155 ...
+##  $ RINGS  : int  9 13 10 14 8 9 6 7 9 10 ...
+##  $ CLASS  : Factor w/ 6 levels &quot;A1&quot;,&quot;A2&quot;,&quot;A3&quot;,..: 3 5 3 5 2 3 1 2 3 3 ...
+##  $ VOLUME : num  0.0659 0.0484 0.0641 0.0409 0.0189 ...
+##  $ DENSITY: num  18.5 23.9 19.1 31.8 25.7 ...</code></pre>
+<pre class="r"><code># Convert **RINGS** to factor because the value between does not have meaning
+abalone$RINGS &lt;- as.factor(abalone$RINGS)</code></pre>
+<p>About the abalone data (4141 observations and ten variables)</p>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>SEX = M (male), F (female), I (infant)</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>LENGTH = Longest shell length in mm</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>DIAM = Diameter perpendicular to length in mm</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>HEIGHT = Height perpendicular to length and diameter in mm</li>
+</ol></li>
+<li><ol start="5" style="list-style-type: decimal">
+<li>WHOLE = Whole weight of abalone in grams</li>
+</ol></li>
+<li><ol start="6" style="list-style-type: decimal">
+<li>SHUCK = Shucked weight of meat in grams</li>
+</ol></li>
+<li><ol start="7" style="list-style-type: decimal">
+<li>VISCERA = Viscera weight in grams</li>
+</ol></li>
+<li><ol start="8" style="list-style-type: decimal">
+<li>SHELL = Shell weight after drying in grams</li>
+</ol></li>
+<li><ol start="9" style="list-style-type: decimal">
+<li>RINGS = Age (+1.5 gives the age in years)<br />
+</li>
+</ol></li>
+<li><ol start="10" style="list-style-type: decimal">
+<li>CLASS = Age classification based on <strong>RINGS</strong> (A1= youngest,., A6=oldest)</li>
+</ol></li>
+</ul>
+<pre class="r"><code>options(digits=4)
+numericSummaryStats&lt;-function(x){
+  c(
+    Min=min(as.numeric(x)),
+    Q = quantile (as.numeric(x), 0.25),
+    Median= median(as.numeric(x)),
+    Mean= mean(as.numeric(x)),
+    Q = quantile (as.numeric(x), 0.75),
+    Max=max(as.numeric(x))
+  )}
+
+NumericSummary&lt;- sapply(abalone[,2:8], numericSummaryStats)
+
+library(&quot;knitr&quot;,&quot;xtable&quot;)</code></pre>
+<pre><code>## Warning: package &#39;knitr&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>kable(NumericSummary,format=&quot;pandoc&quot;,caption=&quot;Numeric Variable Summary&quot;)</code></pre>
+<table>
+<caption>Numeric Variable Summary</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">LENGTH</th>
+<th align="right">DIAM</th>
+<th align="right">HEIGHT</th>
+<th align="right">WHOLE</th>
+<th align="right">SHUCK</th>
+<th align="right">VISCERA</th>
+<th align="right">SHELL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Min</td>
+<td align="right">0.1550</td>
+<td align="right">0.1050</td>
+<td align="right">0.0300</td>
+<td align="right">0.0175</td>
+<td align="right">0.0050</td>
+<td align="right">0.0035</td>
+<td align="right">0.0050</td>
+</tr>
+<tr class="even">
+<td>Q.25%</td>
+<td align="right">0.4600</td>
+<td align="right">0.3538</td>
+<td align="right">0.1150</td>
+<td align="right">0.4740</td>
+<td align="right">0.1979</td>
+<td align="right">0.0999</td>
+<td align="right">0.1350</td>
+</tr>
+<tr class="odd">
+<td>Median</td>
+<td align="right">0.5400</td>
+<td align="right">0.4200</td>
+<td align="right">0.1400</td>
+<td align="right">0.7865</td>
+<td align="right">0.3285</td>
+<td align="right">0.1715</td>
+<td align="right">0.2362</td>
+</tr>
+<tr class="even">
+<td>Mean</td>
+<td align="right">0.5263</td>
+<td align="right">0.4088</td>
+<td align="right">0.1392</td>
+<td align="right">0.8296</td>
+<td align="right">0.3617</td>
+<td align="right">0.1822</td>
+<td align="right">0.2354</td>
+</tr>
+<tr class="odd">
+<td>Q.75%</td>
+<td align="right">0.6100</td>
+<td align="right">0.4762</td>
+<td align="right">0.1650</td>
+<td align="right">1.1405</td>
+<td align="right">0.5091</td>
+<td align="right">0.2566</td>
+<td align="right">0.3200</td>
+</tr>
+<tr class="even">
+<td>Max</td>
+<td align="right">0.7450</td>
+<td align="right">0.6000</td>
+<td align="right">0.2400</td>
+<td align="right">2.3810</td>
+<td align="right">1.1565</td>
+<td align="right">0.5500</td>
+<td align="right">0.7800</td>
+</tr>
+</tbody>
+</table>
+<p>Above a simple summary for the variables measuring the length and weight of abalones from the 500 sample. The minimum value, first quartile, median, mean, upper quartile, and maximum value helps us understand the distribution of the variables. By comparing the mean and median, it looks like the shell weight maybe symmetrical distributed because the two values are very close. LENGTH and DIAM are negatively skewed because the median is larger the mean.</p>
+<p>In order to have a better idea of the relationships between the numeric variables, we have the scatterplots for the variables that summarized in Figure2. There are clear linear relationships between LENGTH, DIAM, and HEIGHT. LENGTH measures the longest length of the abalone shell. DIAM is the diameter perpendicular to LENGTH. HEIGHT is perpendicular to length and diameter. The width and the height of the shell will get larger as the shell length becomes larger. The linear relationship between WHOLE and SHUCK is also strong. It makes sense as the whole weight included the shuck weight of the abalone. It also looks like the positive relationship between SHUCK and VISCERA, VISCERA and SHELL are strong. However, the points are spread out. In addition, from the right upper plots and the left lower plots, initially, as the lengths (LENGTH and DIAM) get longer, the weights, no matter how it measured, they are quite stable. When the LENGTH gets more than 0.4mm, the weights of the abalones increase very fast, and the rate of increases get faster. While the abalone reach a big weight, the lengths of the shell increase very little, it more like the shell won’t get bigger. In addition, it looks like there are some outliers come from the abalones with very high shell weight after dying.</p>
+<pre class="r"><code>plot(abalone[,2:8])</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>Sex_Class &lt;- addmargins(table(abalone$SEX, abalone$CLASS))
+kable(Sex_Class,format=&quot;pandoc&quot;,caption=&quot;Sex by Age Class&quot;)</code></pre>
+<table>
+<caption>Sex by Age Class</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">A1</th>
+<th align="right">A2</th>
+<th align="right">A3</th>
+<th align="right">A4</th>
+<th align="right">A5</th>
+<th align="right">A6</th>
+<th align="right">Sum</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F</td>
+<td align="right">2</td>
+<td align="right">29</td>
+<td align="right">61</td>
+<td align="right">40</td>
+<td align="right">10</td>
+<td align="right">15</td>
+<td align="right">157</td>
+</tr>
+<tr class="even">
+<td>I</td>
+<td align="right">41</td>
+<td align="right">61</td>
+<td align="right">35</td>
+<td align="right">8</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">153</td>
+</tr>
+<tr class="odd">
+<td>M</td>
+<td align="right">6</td>
+<td align="right">24</td>
+<td align="right">80</td>
+<td align="right">43</td>
+<td align="right">22</td>
+<td align="right">15</td>
+<td align="right">190</td>
+</tr>
+<tr class="even">
+<td>Sum</td>
+<td align="right">49</td>
+<td align="right">114</td>
+<td align="right">176</td>
+<td align="right">91</td>
+<td align="right">35</td>
+<td align="right">35</td>
+<td align="right">500</td>
+</tr>
+</tbody>
+</table>
+<p>Above groups female, infant and male abalones by shell classification. Because A1 indicates the youngest abalones and A6 represent the oldest. Apparently, infants should fall into the young groups. But there some infants also belong to older groups, even A6. In Figure4, we can also get that most female and male abalones fall in age A3. Overall, there are more male abalones than female abalones.</p>
+<p>As there are clear linear relationships between LENGTH, DIAM, and HEIGHT showing in above, we will create a new variable called VOLUME. VOLUME is calculated by multiplying LENGTH, DIAM and HEIGHT together.</p>
+<pre class="r"><code>VOLUME &lt;- abalone$LENGTH * abalone$DIAM * abalone$HEIGHT
+abalone &lt;- data.frame(abalone, VOLUME)
+
+library(ggplot2)</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>library(gridExtra)</code></pre>
+<pre><code>## Warning: package &#39;gridExtra&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>ggplot(data=abalone, aes(x=WHOLE, y=VOLUME)) +
+  geom_point(pch=16, color=&quot;black&quot;, size=2) +
+  geom_smooth(method=&quot;lm&quot;,  se = FALSE, color=&quot;blue&quot;,  size=1.2, linetype=2) +
+  labs(title=&quot;Plot WHOLE Versus VOLUME&quot;, x=&quot;Whole weight of abalone (grams)&quot;, y=&quot;VOLUME&quot;) +
+  theme( 
+    title = element_text(size = 18, color = &quot;black&quot;, face = &quot;bold&quot;),
+    axis.text = element_text(colour = &quot;black&quot;, size = 12, face = &quot;italic&quot;),
+    axis.text.y = element_text(colour = &quot;black&quot;,size = 12),
+    axis.title = element_text(size = 15, color = &quot;black&quot;, face = &quot;bold&quot;),
+    axis.title.y = element_text(size = 15, color = &quot;black&quot;, face = &quot;bold&quot;)
+    
+  )</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Above is the plot between the whole weight of abalone and its volume. The blue dash represents best fit for the black dots in the graph. Most of the black dots fall on or very close to the blue line when the whole weight within 0.5 grams and its less than 0.025 〖mm〗^3. The dots get far away from the blue line as the weights gets larger. However, the VOLUMN has a positive linear relationship with the whole weight overall. Because VOLUMN is the product of LENGTH, DIAM, and HEIGHT. Those three values showing positive relationship with whole weight. However, the relationship looks weak when the abalone reach 0.5 grams and higher.</p>
+<pre class="r"><code>DENSITY &lt;- abalone$WHOLE/abalone$VOLUME
+abalone &lt;- data.frame(abalone, DENSITY) 
+#     Using DENSITY, present a matrix showing histograms, boxplots and Q-Q plots differentiated by sex.
+#     The first row would show the histograms, 
+#     The second row would show the boxplots  
+#     The third row would show the Q-Q plots.      
+par(mfrow = c(3,3))
+
+hist((abalone[abalone[,1] == &quot;F&quot;, 12]),main=&quot;Female Histogram&quot;,xlab = NULL, col = &quot;red&quot;) 
+hist((abalone[abalone[,1] == &quot;I&quot;, 12]),main=&quot;Infant Histogram&quot;,xlab = NULL,col = &quot;blue&quot;)
+hist((abalone[abalone[,1] == &quot;M&quot;, 12]),main=&quot;Male Histogram&quot;,xlab = NULL, col = &quot;green&quot;)
+
+boxplot((abalone[abalone[,1] == &quot;F&quot;, 12]), main=&quot;Female Boxplot&quot;, ylab=&quot;DENSITY&quot;,col = &quot;red&quot;)
+boxplot((abalone[abalone[,1] == &quot;I&quot;, 12]), main=&quot;Infant Boxplot&quot;, ylab=&quot;DENSITY&quot;,col = &quot;blue&quot;)
+boxplot((abalone[abalone[,1] == &quot;M&quot;, 12]), main=&quot;Male Boxplot&quot;, ylab=&quot;DENSITY&quot;,col = &quot;green&quot;)
+
+qqnorm(abalone[abalone[,1] == &quot;F&quot;, 12], ylab = &quot;Sample Quantiles for Female&quot;,
+       main = &quot;Q-Q Plot for Female&quot;,
+       col =  &quot;red&quot;,cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == &quot;F&quot;, 12])
+qqnorm(abalone[abalone[,1] == &quot;I&quot;, 12], ylab = &quot;Sample Quantiles for Infant&quot;,
+       main = &quot;Q-Q Plot for Infant&quot;,
+       col = &quot;blue&quot;,cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == &quot;I&quot;, 12])
+qqnorm(abalone[abalone[,1] == &quot;M&quot;, 12], ylab = &quot;Sample Quantiles for Male&quot;,
+       main = &quot;Q-Q Plot for Male&quot;,
+       col = &quot;green&quot;, cex.axis = 1.5, cex = 1.5)
+qqline(abalone[abalone[,1] == &quot;M&quot;, 12]) </code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
