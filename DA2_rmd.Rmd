@@ -1,0 +1,580 @@
+---
+title: "DA2-RMD"
+author: "Ying Cheng"
+date: "June 1, 2016"
+output:
+
+  html_document:
+    fig_height: 5
+    fig_width: 10
+    highlight: tango
+    theme: readable
+---
+
+```{r}
+
+getwd()
+
+# Change work directory
+setwd("C:/Users/Admin/Dropbox/Northwestern University/PREDICT 401 Introduction to Statistical Analysis/Data Analysis/Data Analysis Two/")
+
+
+mydata <- read.csv("C:/Users/Admin/Dropbox/Northwestern University/PREDICT 401 Introduction to Statistical Analysis/Data Analysis/Data Analysis Two/mydata.csv", sep="")
+
+```
+
+
+```{r}
+# Write a function in R to calculate the Pearson chi square statistic on 2x2 contingency tables   
+# Refer to Black chapter 16.2
+
+Defined_chi <- function(x) {
+  # Expected values are calculated
+  e11 <- x[3,1]*x[1,3]/x[3,3]
+  e12 <- x[3,2]*x[1,3]/x[3,3]
+  e21 <- x[3,1]*x[2,3]/x[3,3]
+  e22 <- x[3,2]*x[2,3]/x[3,3]
+  
+  # Our next step is to use our observed (values in our actual table)
+  # and expected values to calculate chi-square.
+  
+  
+  chisq <- (x[1,1]-e11)^2/e11 + (x[1,2]-e12)^2/e12 + (x[2,1]-e21)^2/e21 + (x[2,2]-e22)^2/e22  
+  
+  
+  return(chisq)
+} # end of function
+
+
+# To be used with 2x2 contingency tables that have margins added.  
+
+shuck <- factor(mydata$SHUCK > median(mydata$SHUCK), labels = c("below", "above"))     # will return FLASE & TRUE, FALSE->"Below"
+volume <- factor(mydata$VOLUME > median(mydata$VOLUME), labels = c("below", "above"))
+shuck_volume <- addmargins(table(shuck,volume)) 
+
+Defined_chi(shuck_volume)
+pchisq(Defined_chi(shuck_volume),1,lower.tail = FALSE)
+
+# critical chi-square with significant level 0.01:
+qchisq(0.01, 1, lower.tail = FALSE)
+
+plot(mydata$SHUCK,mydata$VOLUME, xlab=" SHUCK",  pch=16, ylab= "VOLUME", main= "SHUCK and VOLUME Scatterplot")
+abline(lm(mydata$VOLUME~mydata$SHUCK), col="red", lty = 1, lwd=2) # regression line (y~x) 
+
+cor(mydata$SHUCK,mydata$VOLUME)
+```
+
+```{r}
+# 2)
+# Calculate a new variable RATIO equal to SHUCK divided by VOLUME 
+# Use data.frame() to include this variable in mydata.
+RATIO <- mydata$SHUCK/mydata$VOLUME
+mydata <- data.frame(mydata, RATIO)
+
+library(ggplot2)
+ggplot(mydata, aes(x=CLASS, y=RATIO)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  labs(title= " Boxplots of RATIO differentiated by CLASS", x="CLASS", y="RATIO") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+  )
+
+# Perform an analysis of variance using aov() on RATIO using CLASS and SEX
+
+aov1 <- aov(RATIO~CLASS+SEX+CLASS*SEX, mydata)
+summary(aov1)
+```
+
+
+```{r}
+
+ggplot(mydata, aes(x=SEX, y=RATIO)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  labs(title= " Boxplots of RATIO differentiated by SEX", x="SEX", y="RATIO") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+  )
+```
+
+
+```{r}
+aov.sex<- aov(RATIO~SEX, mydata)
+summary(aov.sex)  
+```
+
+```{r}
+TukeyHSD(aov.sex)
+
+aov2 <- aov(RATIO~CLASS+SEX, mydata)
+summary(aov2)
+```
+
+
+```{r}
+r <- residuals(aov2)
+fitt <- fitted(aov2)
+
+par(mfrow = c(1,2))
+hist(r, col = "red", main = "Histogram of Residuals", xlab = "Residual")
+boxplot(r, col = "red", main = "Boxplot Residuals", ylab = "Residual")
+par(mfrow = c(1,1))
+
+qqnorm(r, col = "red", pch = 16, main = "QQ Plot of Residuals")
+qqline(r, col = "green", lty = 2, lwd = 2)
+```
+
+```{r}
+require(moments)
+skewness(r)
+kurtosis(r)
+```
+
+```{r}
+
+
+# 95% residule value
+qnorm(0.025, mean = 0, sd = sd(r), lower.tail = TRUE)
+
+plot(fitt,r, main = "Plot of residuals versus fitted values", xlab = "fitted values",
+     ylab = "residuals", col = "red")
+abline(h = 0, lty = 2, col = "green")
+abline(h = 3.95, lty = 2, col = "blue")
+abline(h = -3.95, lty = 2, col = "blue")
+```
+
+```{r}
+
+TukeyHSD(aov2)
+```
+
+
+
+```{r}
+
+# 3)
+
+# scatterplot of SHUCK versus VOLUME  
+# plot(mydata$WHOLE, mydata$VOLUME)  
+library(ggplot2)
+library(gridExtra)
+
+
+ggplot(data=mydata, aes(x=VOLUME, y=SHUCK, color=CLASS)) +
+  geom_point(pch=16, size=2) +
+  geom_smooth(method="lm",  se = FALSE, color="black",  size=1.2, linetype=1) +
+  labs(title="Scatterplot of SHUCK versus VOLUME", x="VOLUME", y="SHUCK") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+    
+  )
+```
+
+```{r}
+# Logarithms form
+ggplot(data=mydata, aes(x=log(VOLUME), y=log(SHUCK), color=CLASS)) +
+  geom_point(pch=16, size=2) +
+  geom_smooth(method="lm",  se = FALSE, color="black",  size=1.2, linetype=1) +
+  labs(title="Scatterplot of L_SHUCK versus L_VOLUME", x="L_VOLUME", y="L_SHUCK") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+    
+  )
+```
+
+```{r}
+# 4) 
+
+lm.model <- lm(log(SHUCK)~log(VOLUME)+CLASS+SEX, mydata)
+summary(lm.model)
+
+```
+
+```{r}
+# 5)
+
+out <- lm(log(SHUCK)~log(VOLUME)+CLASS, mydata)
+summary(out)
+```
+
+
+```{r}
+par(mfrow = c(1,2))
+hist(out$residuals, col = "red",breaks = "fd",  main = "Histogram of Residuals", xlab = "Residual")
+boxplot(out$residuals, col = "red", main = "Boxplot Residuals", ylab = "Residual")
+par(mfrow = c(1,1))
+
+qqnorm(out$residuals, col = "red", pch = 16, main = "QQ Plot of Residuals")
+qqline(out$residuals, col = "black", lty = 2, lwd = 2)
+```
+
+
+```{r}
+require(moments)
+skewness(out$residuals)
+kurtosis(out$residuals)
+```
+
+
+```{r}
+
+resid.quant <- quantile(out$residuals, probs = c(0.025, 0.975))
+
+resid.quant  
+```
+
+
+```{r}
+plot(fitted(out),out$residuals, main = "Plot of residuals versus fitted values", xlab = "fitted values",
+     ylab = "residuals", col = "red")
+abline(h = 0, lty = 2, col = "green")
+abline(h = 0.399, lty = 2, col = "blue")
+abline(h = -0.350, lty = 2, col = "blue")
+
+```
+
+
+```{r}
+# Using ggplot2 to plot above plots
+
+
+# Residula histogram
+
+ggplot(out, aes(x = out$residuals)) + geom_histogram()
+```
+
+
+```{r}
+
+# Residule QQ Plot
+resid.quant <- quantile(out$residuals, probs = c(0.25, 0.75))
+theor.quant <- qnorm(c(0.25, 0.75))
+
+slope <- diff(resid.quant)/diff(theor.quant)
+intercept <- resid.quant[1] - slope * theor.quant[1]
+ggplot(out, aes(sample = out$residuals)) + stat_qq() +
+  geom_abline(intercept = intercept, slope = slope)
+
+```
+
+
+```{r}
+#  Plot the residuals versus L_VOLUME coloring the data points by CLASS
+
+ggplot(out, aes(x = log(mydata$VOLUME),y = out$residuals)) + geom_point(aes(color = CLASS)) +
+  labs(x = "L_VOLUME", y = "Residual")   
+
+```
+
+```{r}
+# ggplot to present boxplots of the residuals differentiated by CLASS
+
+ggplot(out, aes(x=mydata$CLASS, y=out$residuals)) +
+  geom_boxplot(fill="cornflowerblue", color="black", notch= TRUE)+
+  geom_point(position="jitter", color="blue", alpha=.5)+
+  labs(title= " Boxplots of residuals differentiated by CLASS", x="CLASS", y="residuals") +
+  theme( 
+    title = element_text(size = 18, color = "black", face = "bold"),
+    axis.text = element_text(colour = "black", size = 12, face = "italic"),
+    axis.text.y = element_text(colour = "black",size = 12),
+    axis.title = element_text(size = 15, color = "black", face = "bold"),
+    axis.title.y = element_text(size = 15, color = "black", face = "bold")
+  )
+```
+
+
+```{r}
+# 6)
+# a)
+
+idxi <- mydata[,1]=="I"   # to evluate the "SEX" column, return "TRUE" /"FALSE" statement
+idxf <- mydata[,1]=="F" 
+idxm <- mydata[,1]=="M" 
+
+max.v <- max(mydata$VOLUME)   # Maximum VOLUME
+min.v <- min(mydata$VOLUME)   # Minimum VOLUME
+delta <- (max.v - min.v)/100  # Divided VOLUME in to 100 
+
+prop.infants <- numeric(0)    # Numeric(0) does not mean 0, it means a numeric vector of length zero (i.e., empty). 
+volume.value <- numeric(0) 
+total <- length(mydata[idxi,1])  # This value must be changed for adults. Total "Infant" observations
+                                 # nrow(subset(mydata, mydata$SEX=="I"))
+
+for (k in 1:100) {    # We divided VOLUME into 100 parts in the begining 
+  value <- min.v + k*delta   
+  volume.value[k] <- value   
+  prop.infants[k] <- sum(mydata$VOLUME[idxi] <= value)/total # we have defined "total" as total number of infants
+    } 
+
+# prop.infants shows the impact of increasing the volume cutoff for harvesting.    
+# The following code shows how to "split" the population at a 50% harvest of infants.
+
+n.infants <- sum(prop.infants <= 0.5) 
+split.infants <- min.v + (n.infants + 0.5)*delta  # This estimates the desired volume. 
+                                                  # Same as quantile(mydata$VOLUME[idxi], probs=0.5)
+                                                  # What's the VOLUMN for 50% blow
+
+plot(volume.value, prop.infants, col = "green", main = "Proportion of Infants Not Harvested",
+     type = "l", lwd = 2) 
+
+abline(h=0.5) 
+abline(v = split.infants) 
+```
+
+```{r}
+# b)  Modify the code.  This time instead of counting infants, count adults
+#     Present a plot showing the adult proportions versus volume.
+
+adults <- mydata[,1]!="I"   # to evluate the "SEX" column, return "TRUE" /"FALSE" statement
+
+
+max.v <- max(mydata$VOLUME)   # Maximum VOLUME
+min.v <- min(mydata$VOLUME)   # Minimum VOLUME
+delta <- (max.v - min.v)/100  # Divided VOLUME in to 100 
+
+prop.adults <- numeric(0)    # Numeric(0) does not mean 0, it means a numeric vector of length zero (i.e., empty). 
+volume.value <- numeric(0) 
+total.adults <- length(mydata[adults,1])  # Total "adults" observations
+
+
+for (k in 1:100) {    # We divided VOLUME into 100 parts in the begining 
+  value <- min.v + k*delta   
+  volume.value[k] <- value   
+  prop.adults[k] <- sum(mydata$VOLUME[adults] <= value)/total.adults
+} 
+
+
+
+n.adults <- sum(prop.adults <= 0.5) 
+split.adults <- min.v + (n.adults + 0.5)*delta  # This estimates the desired volume. 
+
+
+plot(volume.value, prop.adults, col = "green", main = "Proportion of Adults Not Harvested",
+     type = "l", lwd = 2) 
+
+abline(h=0.5) 
+abline(v = split.adults) 
+
+```
+
+```{r}
+# 7)
+# a)
+
+#  "difference" is the difference in adult and infant proportions harvested
+
+difference <- (1-prop.adults)-(1-prop.infants)
+
+plot(volume.value, difference, col = "green", main = " Harvested Difference Versus volume.value",
+     type = "l", lwd = 2) 
+abline(v = volume.value[which.max(difference)], lty = 2, col = "dodgerblue4")
+
+  text(volume.value[which.max(difference)] + 0.003, 0.4,
+     paste("volume =",
+           round(volume.value[which.max(difference)], 5)), srt = 90)
+
+abline(h=max(difference),lty = 2, col = "dodgerblue4") 
+
+```
+
+
+```{r}
+# b)
+# Determine the volume.value which corresponds to the observed "peak" difference
+max(difference)
+Peak.volume.value<- volume.value[which.max(difference)]
+Peak.volume.value
+
+```
+
+
+```{r}
+# c)
+# What harvest proportions for infants and adults 
+# would result if this volume.value is used as a "cutoff" for decision making?  
+# Should other cutoffs be considered?
+
+harvest.infants <- 1- sum(mydata$VOLUME[idxi] <= Peak.volume.value)/total
+harvest.infants
+
+harvest.adults <- 1- sum(mydata$VOLUME[adults] <= Peak.volume.value)/total.adults
+harvest.adults
+```
+
+
+
+```{r}
+# 8)
+# we simply need to plot the TPR, (1-prop.adults), as a function of the FPR
+# we already have our true and false positive rates; TPR and FPR. (1-prop.adults) is our true positive rate
+ plot( 1-prop.infants, 1-prop.adults, col = "green", main = " ROC Curve",
+       type = "l", lwd = 2) 
+ abline(a=0, b=1, col = "darkred", lty = 2, lwd = 2)
+
+```
+
+```{r}
+# a) 
+# smallest cutoff (i.e. volume.value) for which no infant is harvested 
+ 
+ smallest.cutoff <- max(subset(mydata, mydata$SEX=="I")$VOLUME)  # which is the smallest VOLUMN of infants
+ smallest.cutoff
+# Report this cutoff and the corresponding (1-prop.adults) value
+ 1- sum(mydata$VOLUME[adults] <= smallest.cutoff)/total.adults
+ 
+```
+
+
+
+```{r}
+ 
+# 9) 
+# a)
+# CUT OFF :0.036
+cutoff1 <- 0.036   #(Note: smaller values will need to be checked.) 
+index.A1 <- (mydata$CLASS=="A1") 
+indexi.A1<- index.A1 & idxi 
+Infant.harvest.A1.1 <- sum(mydata[indexi.A1,11] >= cutoff1)/sum(index.A1) 
+Infant.harvest.A1.1
+
+max(mydata[indexi.A1,11])
+
+index.A2 <- (mydata$CLASS=="A2")  
+indexi.A2 <- index.A2 & idxi  
+Infant.harvest.A2.1 <- sum(mydata[indexi.A2,11] >= cutoff1)/sum(index.A2)   
+Infant.harvest.A2.1
+
+max(mydata[indexi.A2,11])
+
+# 9) 
+# b)
+
+index.A3 <- (mydata$CLASS=="A3") 
+index.A4 <- (mydata$CLASS=="A4") 
+index.A5 <- (mydata$CLASS=="A5")
+index.A6 <- (mydata$CLASS=="A6") 
+
+indexi.A3<- index.A3 & idxi 
+indexi.A4<- index.A4 & idxi 
+indexi.A5<- index.A5 & idxi 
+indexi.A6<- index.A6 & idxi 
+
+
+adults.A1<- index.A1 & adults 
+adults.A2<- index.A2 & adults 
+adults.A3<- index.A3 & adults 
+adults.A4<- index.A4 & adults 
+adults.A5<- index.A5 & adults 
+adults.A6<- index.A6 & adults 
+
+# CUT OFF :0.036
+
+Infant.harvest.A3.1 <- sum(mydata[indexi.A3,11] >= cutoff1)/sum(index.A3) 
+Infant.harvest.A4.1 <- sum(mydata[indexi.A4,11] >= cutoff1)/sum(index.A4) 
+Infant.harvest.A5.1 <- sum(mydata[indexi.A5,11] >= cutoff1)/sum(index.A5) 
+Infant.harvest.A6.1 <- sum(mydata[indexi.A6,11] >= cutoff1)/sum(index.A6) 
+
+adults.harvest.A1.1 <- sum(mydata[adults.A1,11] >= cutoff1)/sum(index.A1) 
+adults.harvest.A2.1 <- sum(mydata[adults.A2,11] >= cutoff1)/sum(index.A2) 
+adults.harvest.A3.1 <- sum(mydata[adults.A3,11] >= cutoff1)/sum(index.A3) 
+adults.harvest.A4.1 <- sum(mydata[adults.A4,11] >= cutoff1)/sum(index.A4) 
+adults.harvest.A5.1 <- sum(mydata[adults.A5,11] >= cutoff1)/sum(index.A5) 
+adults.harvest.A6.1 <- sum(mydata[adults.A6,11] >= cutoff1)/sum(index.A6) 
+
+
+# CUT OFF :0.035
+cutoff2 <- 0.035   #(Note: smaller values will need to be checked.) 
+
+Infant.harvest.A1.2 <- sum(mydata[indexi.A1,11] >= cutoff2)/sum(index.A1) 
+Infant.harvest.A2.2 <- sum(mydata[indexi.A2,11] >= cutoff2)/sum(index.A2)   
+Infant.harvest.A3.2 <- sum(mydata[indexi.A3,11] >= cutoff2)/sum(index.A3) 
+Infant.harvest.A4.2 <- sum(mydata[indexi.A4,11] >= cutoff2)/sum(index.A4) 
+Infant.harvest.A5.2 <- sum(mydata[indexi.A5,11] >= cutoff2)/sum(index.A5) 
+Infant.harvest.A6.2 <- sum(mydata[indexi.A6,11] >= cutoff2)/sum(index.A6) 
+
+
+adults.harvest.A1.2 <- sum(mydata[adults.A1,11] >= cutoff2)/sum(index.A1) 
+adults.harvest.A2.2 <- sum(mydata[adults.A2,11] >= cutoff2)/sum(index.A2) 
+adults.harvest.A3.2 <- sum(mydata[adults.A3,11] >= cutoff2)/sum(index.A3) 
+adults.harvest.A4.2 <- sum(mydata[adults.A4,11] >= cutoff2)/sum(index.A4) 
+adults.harvest.A5.2 <- sum(mydata[adults.A5,11] >= cutoff2)/sum(index.A5) 
+adults.harvest.A6.2 <- sum(mydata[adults.A6,11] >= cutoff2)/sum(index.A6) 
+
+ # CUT OFF :0.034
+cutoff3 <- 0.034   #(Note: smaller values will need to be checked.) 
+
+Infant.harvest.A1.3 <- sum(mydata[indexi.A1,11] >= cutoff3)/sum(index.A1) 
+Infant.harvest.A2.3 <- sum(mydata[indexi.A2,11] >= cutoff3)/sum(index.A2)   
+Infant.harvest.A3.3 <- sum(mydata[indexi.A3,11] >= cutoff3)/sum(index.A3) 
+Infant.harvest.A4.3 <- sum(mydata[indexi.A4,11] >= cutoff3)/sum(index.A4) 
+Infant.harvest.A5.3 <- sum(mydata[indexi.A5,11] >= cutoff3)/sum(index.A5) 
+Infant.harvest.A6.3 <- sum(mydata[indexi.A6,11] >= cutoff3)/sum(index.A6) 
+
+
+adults.harvest.A1.3 <- sum(mydata[adults.A1,11] >= cutoff3)/sum(index.A1) 
+adults.harvest.A2.3 <- sum(mydata[adults.A2,11] >= cutoff3)/sum(index.A2) 
+adults.harvest.A3.3 <- sum(mydata[adults.A3,11] >= cutoff3)/sum(index.A3) 
+adults.harvest.A4.3 <- sum(mydata[adults.A4,11] >= cutoff3)/sum(index.A4) 
+adults.harvest.A5.3 <- sum(mydata[adults.A5,11] >= cutoff3)/sum(index.A5) 
+adults.harvest.A6.3 <- sum(mydata[adults.A6,11] >= cutoff3)/sum(index.A6) 
+
+# Combine the result
+
+infants.A1 <- c(Infant.harvest.A1.1, Infant.harvest.A1.2, Infant.harvest.A1.3)
+infants.A2 <- c(Infant.harvest.A2.1, Infant.harvest.A2.2, Infant.harvest.A2.3)
+infants.A3 <- c(Infant.harvest.A3.1, Infant.harvest.A3.2, Infant.harvest.A3.3)
+infants.A4 <- c(Infant.harvest.A4.1, Infant.harvest.A4.2, Infant.harvest.A4.3)
+infants.A5 <- c(Infant.harvest.A5.1, Infant.harvest.A5.2, Infant.harvest.A5.3)
+infants.A6 <- c(Infant.harvest.A6.1, Infant.harvest.A6.2, Infant.harvest.A6.3)
+
+Infants <- rbind(infants.A1, infants.A2, infants.A3, infants.A4, infants.A5, infants.A6)
+
+colnames(Infants) <- c("Cutoff 0.036", "Cutoff 0.035", "Cutoff 0.034")
+
+Infants
+
+adults.A1 <- c(adults.harvest.A1.1, adults.harvest.A1.2, adults.harvest.A1.3)
+adults.A2 <- c(adults.harvest.A2.1, adults.harvest.A2.2, adults.harvest.A2.3)
+adults.A3 <- c(adults.harvest.A3.1, adults.harvest.A3.2, adults.harvest.A3.3)
+adults.A4 <- c(adults.harvest.A4.1, adults.harvest.A4.2, adults.harvest.A4.3)
+adults.A5 <- c(adults.harvest.A5.1, adults.harvest.A5.2, adults.harvest.A5.3)
+adults.A6 <- c(adults.harvest.A6.1, adults.harvest.A6.2, adults.harvest.A6.3)
+
+Adults <- rbind(adults.A1, adults.A2, adults.A3, adults.A4, adults.A5, adults.A6)
+
+Overall.CLASS.Summary <- rbind(Infants,Adults)
+
+options(digits=3)
+
+Overall.CLASS.Summary
+
+
+CutoffA1A2 <- 0.035
+infantsA1A2 <- 1- sum(mydata$VOLUME[idxi] <= CutoffA1A2)/total
+
+
+adultsA1A2 <- 1- sum(mydata$VOLUME[adults] <= CutoffA1A2)/total.adults
+
+
+```
+
+
+
+
